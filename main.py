@@ -1,3 +1,3 @@
 import pygame as pg
 
-h = 8
+pg.display()
