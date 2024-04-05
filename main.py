@@ -5,10 +5,10 @@ import random
 run = True
 
 playerHand = dealerHand = []
-cards = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", 
-         "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King",
-         "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King",
-         "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"]
+cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "A", "Jack", "Queen", "King", 
+         "2", "3", "4", "5", "6", "7", "8", "9", "10", "A", "Jack", "Queen", "King",
+         "2", "3", "4", "5", "6", "7", "8", "9", "10", "A", "Jack", "Queen", "King",
+         "2", "3", "4", "5", "6", "7", "8", "9", "10", "A", "Jack", "Queen", "King"]
 
 pg.init()
 pg.display.set_caption("BlackJack Game")
