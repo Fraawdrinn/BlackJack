@@ -5,33 +5,28 @@ import random
 run = True
 
 playerHand = dealerHand = []
-cards = ["A", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", 
-         "A", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King",
-         "A", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King",
-         "A", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"]
+cards = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", 
+         "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King",
+         "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King",
+         "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"]
 
 pg.init()
-pg.display.set_caption
+pg.display.set_caption("BlackJack Game")
 window_width = 800
 window_height = 600
 
-background = pg.image.load('assets/bg.png') #Chargement de l'image
+background = pg.image.load('assets/bg.png') # Chargement de l'image
 background = pg.transform.scale(background, (window_width, window_height)) # Taille de l'image
 
 gameDisplay = pg.display.set_mode((window_width, window_height)) # Taille de la page
 gameDisplay.blit(background, (0, 0)) # Affiche l'image de fond
 
+    # Chargement d'images
+pioche = pg.image.load('assets/cartes/card-extras/card_back.png')
+pioche = pg.transform.scale(pioche, (200, 200))
+gameDisplay.blit(pioche, (-20, 200))
 
 
-pg.time.Clock()
-
-
-# Distribuer les cartes
-def distrib(player):
-    """Fonction permettant de piocher une carte"""
-    card = random.choice(cards)
-    cards.remove(card)
-    player.append(card)
 
 # Calculer le total
 
