@@ -7,10 +7,10 @@ run = True
 playerHand = dealerHand = []
 
 
-cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "A", "Jack", "Queen", "King", 
-         "2", "3", "4", "5", "6", "7", "8", "9", "10", "A", "Jack", "Queen", "King",
-         "2", "3", "4", "5", "6", "7", "8", "9", "10", "A", "Jack", "Queen", "King",
-         "2", "3", "4", "5", "6", "7", "8", "9", "10", "A", "Jack", "Queen", "King"]
+cards = [2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "Jack", "Queen", "King", 
+         2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "Jack", "Queen", "King", 
+         2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "Jack", "Queen", "King", 
+         2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "Jack", "Queen", "King"]
 
 pg.init()
 pg.display.set_caption("BlackJack Game")
@@ -31,18 +31,19 @@ gameDisplay.blit(pioche, (-20, 200))
 
 
 
-def total(hand):
+def somme(hand):
     """Calcul le total d'une main"""
-    total = int()
+    total = 0
     for el in hand:
-        if isinstance(el[0], int):
-            total += el[0]
-        elif not isinstance(el[0], int):
-            total += 10
-        elif el == "A" and total <= 10:
-            total += 11
+        if isinstance(el, int):
+            total += el
+        elif el == 'A':
+            if total + 11 > 21:
+                total += 1
+            else:
+                total += 11
         else:
-            total += 11
+            total += 10
 
     return total
 
@@ -53,24 +54,30 @@ def distrib(player):
     cards.remove(card)
     player.append(card)
     for i in range(len(player)):
-        gameDisplay.blit(pioche, (100+(i*10), 500))
+        gameDisplay.blit(pioche, (100+(i*50), 500))
 
 hasCardPlayer = False
 
 font = pg.font.SysFont(None, 24)
-img = font.render(str(total(playerHand)), True, (0, 0, 255))
-gameDisplay.blit(img, (800, 500))
+img = font.render(str(somme(playerHand)), True, (0, 0, 255))
+gameDisplay.blit(img, (780, 500))
 
 # Boucle de jeu
 while run:
     for event in pg.event.get():
         if event.type == pg.QUIT:
             run = False
+        elif len(playerHand) > 7 or len(dealerHand) > 7:
+            run = False
 
         elif event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
-                print(playerHand)
                 distrib(playerHand)
+                print(playerHand)
+                print(somme(playerHand))
+                
+                
+                
 
     pg.display.update()  # Mettre à jour l'écran une fois par boucle
 
