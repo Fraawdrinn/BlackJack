@@ -30,11 +30,20 @@ pioche = pg.transform.scale(pioche, (200, 200))
 gameDisplay.blit(pioche, (-20, 200))
 
 
+
 def total(hand):
     """Calcul le total d'une main"""
     total = int()
     for el in hand:
-        total += el
+        if isinstance(el[0], int):
+            total += el[0]
+        elif not isinstance(el[0], int):
+            total += 10
+        elif el == "A" and total <= 10:
+            total += 11
+        else:
+            total += 11
+
     return total
 
 # Distribuer les cartes
@@ -44,11 +53,13 @@ def distrib(player):
     cards.remove(card)
     player.append(card)
     for i in range(len(player)):
-        pg.blit(pioche, (window_width/i, 500))
+        gameDisplay.blit(pioche, (100+(i*10), 500))
 
 hasCardPlayer = False
 
-
+font = pg.font.SysFont(None, 24)
+img = font.render(str(total(playerHand)), True, (0, 0, 255))
+gameDisplay.blit(img, (800, 500))
 
 # Boucle de jeu
 while run:
@@ -56,9 +67,11 @@ while run:
         if event.type == pg.QUIT:
             run = False
 
-        elif event.type == pg.KEYDOWN:
-            if event.key == pg.K_SPACE:
-                pass
+        elif event.type == pg.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                print(playerHand)
+                distrib(playerHand)
+
     pg.display.update()  # Mettre à jour l'écran une fois par boucle
 
     clock.tick(30)
