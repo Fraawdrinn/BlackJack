@@ -29,14 +29,13 @@ pioche = pg.image.load('assets/cartes/card-extras/card_back.png')
 pioche = pg.transform.scale(pioche, (200, 200))
 gameDisplay.blit(pioche, (-20, 200))
 
-pioche2 = pg.image.load('assets/cartes/card-extras/card_back.png')
-pioche2 = pg.transform.scale(pioche2, (200, 200))
 
-pioche3 = pg.image.load('assets/cartes/card-extras/card_back.png')
-pioche3 = pg.transform.scale(pioche3, (200, 200))
-
-pioche4 = pg.image.load('assets/cartes/card-extras/card_back.png')
-pioche4 = pg.transform.scale(pioche4, (200, 200))
+def total(hand):
+    """Calcul le total d'une main"""
+    total = int()
+    for el in hand:
+        total += el
+    return total
 
 # Distribuer les cartes
 def distrib(player):
@@ -44,46 +43,10 @@ def distrib(player):
     card = random.choice(cards)
     cards.remove(card)
     player.append(card)
-
+    for i in range(len(player)):
+        pg.blit(pioche, (window_width/i, 500))
 
 hasCardPlayer = False
-def AnimPiochePlayer():
-    """Animation de pioche (vers le premier slot de carte)"""
-    global hasCardPlayer  # Déclarer hasCardPlayer comme une variable globale
-
-    pioche2_x = -20  # Position initiale en x de pioche2
-    pioche2_y = 200  # Position initiale en y de pioche2
-
-    pioche3_x = -20  # Position initiale en x de pioche3
-    pioche3_y = 200  # Position initiale en y de pioche3
-
-    if hasCardPlayer == False:
-        while pioche2_x < 340 and pioche2_y < 400:
-            
-            # Animation de pioche2
-            pioche2_x += 2  # Déplacement horizontal
-            pioche2_y += 2
-
-            gameDisplay.blit(background, (0, 0))  # Afficher le fond à chaque boucle pour effacer les anciens objets
-            gameDisplay.blit(pioche, (-20, 200))  # Afficher pioche
-            gameDisplay.blit(pioche2, (pioche2_x, pioche2_y))  # Afficher pioche2 à sa nouvelle position
-
-            pg.display.update()  # Mettre à jour l'écran une fois par boucle
-    else: 
-        while pioche3_x < 540 and pioche3_y < 400:
-            # Animation de pioche3
-            pioche3_x += 2  # Déplacement horizontal
-            pioche3_y += 2
-
-            gameDisplay.blit(background, (0, 0))  # Afficher le fond à chaque boucle pour effacer les anciens objets
-            gameDisplay.blit(pioche, (-20, 200))  # Afficher pioche
-            gameDisplay.blit(pioche3, (pioche3_x, pioche3_y))  # Afficher pioche2 à sa nouvelle position
-
-            pg.display.update()  # Mettre à jour l'écran une fois par boucle
-
-    hasCardPlayer = True
-
-    print(hasCardPlayer)
 
 
 
@@ -95,11 +58,10 @@ while run:
 
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_SPACE:
-                AnimPiochePlayer()
-
+                pass
     pg.display.update()  # Mettre à jour l'écran une fois par boucle
 
-    clock.tick(60)
+    clock.tick(30)
 
 pg.quit()
 quit()
