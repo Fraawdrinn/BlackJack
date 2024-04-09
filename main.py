@@ -3,7 +3,6 @@ import random
 
 # Initialisation
 run = True
-
 playerHand = dealerHand = []
 
 
@@ -58,9 +57,19 @@ def distrib(player):
 
 hasCardPlayer = False
 
-font = pg.font.SysFont(None, 24)
-img = font.render(str(somme(playerHand)), True, (0, 0, 255))
-gameDisplay.blit(img, (780, 500))
+def winCond():
+    """"""
+    global run
+    if somme(playerHand) > 21:
+        loseGUI = font.render("Perdu", True, (200, 0, 0))
+        gameDisplay.blit(loseGUI, (380, 300))
+        run = False
+
+    elif somme(playerHand) == 21:
+        blackjackGUI = font.render("BlackJack", True, (200, 0, 0))
+        gameDisplay.blit(blackjackGUI, (380, 300))
+
+font = pg.font.SysFont(None, 30)
 
 # Boucle de jeu
 while run:
@@ -76,9 +85,10 @@ while run:
                 print(playerHand)
                 print(somme(playerHand))
                 
-                
-                
-
+    winCond()
+    totalGUI = font.render(str(somme(playerHand)), True, (0, 0, 255))   
+    gameDisplay.fill((22, 166, 7), (770, 500, 100, 20))
+    gameDisplay.blit(totalGUI, (770, 500))
     pg.display.update()  # Mettre à jour l'écran une fois par boucle
 
     clock.tick(30)
