@@ -84,17 +84,46 @@ def distribDealer(dealer):
 for i in range(2):
     distribDealer(dealerHand)
 
+def choiceGUI(GUI):
+    """Affichage du dilemme"""
+    pass
+
 def winCond():
     """Condition d'arrêt"""
-    global run
-    if somme(playerHand) > 21:
-        loseGUI = font.render("Perdu", True, (200, 0, 0))
-        gameDisplay.blit(loseGUI, (380, 300))
+    global run, choiceGUI
+    def loseGUI():
+        """Fonction permettant d'afficher le message de défaite"""
+        GUI = font.render("Lost", True, (200, 0, 0))
+        gameDisplay.blit(GUI, (380, 300))
         run = False
-
-    elif somme(playerHand) == 21:
-        blackjackGUI = font.render("BlackJack", True, (200, 0, 0))
-        gameDisplay.blit(blackjackGUI, (380, 300))
+    def winGUI():
+        """Fonction permettant d'afficher le message de victoire"""
+        GUI = font.render("BlackJack", True, (0, 200, 0))
+        gameDisplay.blit(GUI, (380, 300))
+        run = False
+    def drawGUI():
+        """Fonction permettant d'afficher le message d'égalité"""
+        GUI = font.render("Draw", True, (100, 100, 100))
+        gameDisplay.blit(GUI, (380, 300))
+        run = False
+    # Condition n°1
+    if somme(playerHand) == 21:
+        winGUI()
+    elif somme(dealerHand) == 21:
+        loseGUI()
+    # Condition n°2
+    elif somme(playerHand) > 21:
+        loseGUI()
+    elif somme(dealerHand) > 21:
+        winGUI()
+    # Condition n°3
+    elif 21 - somme(dealerHand) < 21 - somme(playerHand):
+        loseGUI()
+    elif 21 - somme(dealerHand) < 21 - somme(playerHand):
+        loseGUI()
+    # Condition n°4
+    elif somme(dealerHand) == somme(playerHand) <= 21:
+        drawGUI()
 
 font = pg.font.SysFont(None, 30)
 font2 = pg.font.SysFont(None, 36)
