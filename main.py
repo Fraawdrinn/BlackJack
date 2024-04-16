@@ -1,5 +1,6 @@
 import pygame as pg
 import random
+import color
 
 # Initialisation
 run = True
@@ -17,29 +18,34 @@ pg.display.set_caption("BlackJack Game")
 clock = pg.time.Clock()
 window_width = 800
 window_height = 600
-mouse = pg.mouse.get_pos()
+GUI = True
+
+
+
 background = pg.image.load('assets/bg.png')
 background = pg.transform.scale(background, (window_width, window_height))
 
 gameDisplay = pg.display.set_mode((window_width, window_height))
 gameDisplay.blit(background, (0, 0))
+gameDisplaySurface = (0, 0, window_width, window_height)
 
-# Couleurs
-green = (22, 166, 7)
-dark_green = (15, 159, 0)
-dark_red = (149, 0, 10)
-transparancy = 100
-
-# Bouton du dilemme
-bouton_x = 280
-bouton_y = 305
-bouton_largeur = 80
-bouton_hauteur = 50
+# FONTS
+font = pg.font.SysFont(None, 30)
+font2 = pg.font.SysFont(None, 36)
+font3 = pg.font.Font('assets/Bloxat.ttf', 40)
 
 # CHARGEMENT D'IMAGES
 pioche = pg.image.load('assets/cartes/card-extras/card_back.png')
 pioche = pg.transform.scale(pioche, (200, 200))
 gameDisplay.blit(pioche, (-20, 200))
+pioche_rect = pioche.get_rect(topleft=(-20, 200))
+
+# Fonction pour dessiner le bouton à l'écran
+def dessiner_bouton(bouton_couleur, bouton_x, bouton_y, bouton_width, bouton_height, texte):
+    draw = pg.draw.rect(gameDisplay, bouton_couleur, (bouton_x, bouton_y, bouton_width, bouton_height))
+    gameDisplay.blit(texte, (bouton_x + 15, bouton_y + 15))
+    return (bouton_x, bouton_y, bouton_width, bouton_height, draw)
+
 
 def randCardType(cartes):
     """Choisit un type de carte au hasard"""
@@ -71,6 +77,7 @@ def distribPlayer(player):
     card = random.choice(cards)
     cards.remove(card)
     player.append(card)
+    print('Player: ', player)
     
     for i in range(len(player)):
         gameDisplay.blit(pioche, (100+(i*50), 500))
@@ -93,76 +100,72 @@ def distribDealer(dealer):
     gameDisplay.blit(cardDisplay, (100+(len(dealerHand)*62), 50))
 
 
-for i in range(2):
+for i in range(2): 
     distribDealer(dealerHand)
+    distribPlayer(playerHand)
 
-# Fonction pour détecter si le bouton est cliqué
-def bouton_clique(pos):
-    if bouton_x <= pos[0] <= bouton_x + bouton_largeur and bouton_y <= pos[1] <= bouton_y + bouton_hauteur:
+def choiceGUI():
+    mouse = pg.mouse.get_pos()
+    choice = font2.render('Voulez-vous continuer de piocher ?', False, color.black)
+    gameDisplay.blit(choice, (200, 300))
+    yes_button = dessiner_bouton(color.light_grey, 200, 370, 100, 50, font.render('Oui', False, color.dark_green))
+    yes_button_rect = yes_button[4]
+    no_button = dessiner_bouton(color.light_grey, 500, 370, 100, 50, font.render('Non', False, color.red))
+    no_button_rect = no_button[4]
+    if yes_button_rect.collidepoint(mouse):
         return True
-    return False
+    elif no_button_rect.collidepoint(mouse):
+        return False
+    else: 
+        pass
 
-GUI = True
-def choiceGUI(GUI):
-    """Affichage du dilemme"""
-    
-    # Initialisation du texte
-    yes = font.render("Yes", True, (0, 0, 0))
-    no = font.render("No", True, (0, 0, 0))
-    choice = font2.render('Voulez-vous continuer de piocher ?', False, (0, 0, 0))
-    
-    if somme(playerHand) >= 17:
-        # Affichage du texte
-        gameDisplay.blit(choice, (200, 250)) # Affichage du dilemme
-        yesButton = pg.draw.rect(gameDisplay, dark_green, (bouton_x, bouton_y, bouton_largeur, bouton_hauteur), 0, 10) # Boutton pour Yes
-        noButton = pg.draw.rect(gameDisplay, dark_red, (bouton_x+220, bouton_y, bouton_largeur, bouton_hauteur), 0, 10) # Boutton pour No
-        # Affichage du texte Yes/No
-        gameDisplay.blit(yes, (300, 320))
-        gameDisplay.blit(no, (525, 320))
-
-        
+def winGUI():
+    """Affichage d'écran de victoire"""
+    message = font3.render('Victory', True, color.green)
+    win_button = dessiner_bouton(color.bg, 200, 270, 450, 150, message)
+    return True
+def loseGUI():
+    """Affichage d'écran de défaite"""
+    message = font3.render('Lose', True, color.red)
+    lose_button = dessiner_bouton(color.bg, 200, 270, 450, 150, message)
+    return True
+def drawGUI():
+    """Affichage d'écran d'égalité"""
+    message = font3.render('Draw', True, color.grey)
+    win_button = dessiner_bouton(color.bg, 200, 270, 450, 150, message)
+    return True
+def blackjackGUI():
+    """Affichage d'écran de blackjack"""
+    message = font3.render('Blackjack', True, color.purple)
+    win_button = dessiner_bouton(color.bg, 200, 270, 450, 150, message)
+    return True
 
 def winCond():
     """Condition d'arrêt"""
-    global run, choiceGUI
-    def loseGUI():
-        """Fonction permettant d'afficher le message de défaite"""
-        GUI = font.render("Lost", True, (200, 0, 0))
-        gameDisplay.blit(GUI, (380, 300))
-        run = False
-    def winGUI():
-        """Fonction permettant d'afficher le message de victoire"""
-        GUI = font.render("BlackJack", True, (0, 200, 0))
-        gameDisplay.blit(GUI, (380, 300))
-        run = False
-    def drawGUI():
-        """Fonction permettant d'afficher le message d'égalité"""
-        GUI = font.render("Draw", True, (100, 100, 100))
-        gameDisplay.blit(GUI, (380, 300))
-        run = False
-    if not choiceGUI:
-        # Condition n°1
-        if somme(playerHand) == 21:
-            winGUI()
-        elif somme(dealerHand) == 21:
-            loseGUI()
-        # Condition n°2
-        elif somme(playerHand) > 21:
-            loseGUI()
-        elif somme(dealerHand) > 21:
-            winGUI()
-        # Condition n°3
-        elif 21 - somme(dealerHand) < 21 - somme(playerHand):
-            loseGUI()
-        elif 21 - somme(dealerHand) < 21 - somme(playerHand):
-            loseGUI()
-        # Condition n°4
-        elif somme(dealerHand) == somme(playerHand) <= 21:
-            drawGUI()
+        # Conditions de lose
+    if somme(playerHand) < somme(dealerHand):
+        loseGUI()
+    elif somme(playerHand) > 21:
+        loseGUI()
+        # Conditions de draw
+    elif somme(playerHand) == somme(dealerHand):
+        drawGUI()
+    
 
-font = pg.font.SysFont(None, 30)
-font2 = pg.font.SysFont(None, 36)
-en_pause = False
+
+def playerGUI():
+    # Affichage du score du Joueur
+    playerTotalGUI = font.render(str(somme(playerHand)), True, color.blue)   
+    gameDisplay.fill(color.bg, (770, 500, 100, 20))
+    gameDisplay.blit(playerTotalGUI, (770, 500))
+
+def dealerGUI():
+    # Affichage du score du croupier
+    DealerTotalGUI = font.render(str(somme(dealerHand)), True, color.light_blue)   
+    gameDisplay.fill(color.bg, (770, 50, 100, 20))
+    gameDisplay.blit(DealerTotalGUI, (770, 50))
+
+
 
 # Boucle de jeu
 while run:
@@ -171,38 +174,35 @@ while run:
             run = False
         elif len(playerHand) > 7 or len(dealerHand) > 7:
             run = False
+        elif somme(playerHand) > 21: loseGUI() 
+        elif somme(dealerHand) > 21: winGUI()
+        elif somme(playerHand) == 21: blackjackGUI()
 
         elif event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
-                distribPlayer(playerHand)
-                print('Player: ', playerHand)
-                if bouton_clique(mouse):
-                    en_pause = not en_pause  # Inverser l'état de la pause
-    
-    choiceGUI(GUI)
-    winCond()
+                if pioche_rect.collidepoint(event.pos):
+                    distribPlayer(playerHand)
+        if somme(playerHand) >= 17:
+            choiceGUI()
+            for event in pg.event.get():
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        if choiceGUI(): 
+                            print('1')
+                        gameDisplay.fill(color.bg, (200, 270, 600, 400))
+                        distribPlayer(playerHand)
+                    elif not choiceGUI():
+                        gameDisplay.fill(color.bg, (200, 270, 600, 200))
+                        winCond()
+                        print('0')
 
-    # Si le jeu est en pause, ne pas mettre à jour l'affichage
-    if en_pause:
-        continue
-    
-    
-    # Affichage des scores
-        # Affichage du score du Joueur
-    playerTotalGUI = font.render(str(somme(playerHand)), True, (0, 0, 255))   
-    gameDisplay.fill(green, (770, 500, 100, 20))
-    gameDisplay.blit(playerTotalGUI, (770, 500))
-        # Affichage du score du croupier
-    DealerTotalGUI = font.render(str(somme(dealerHand)), True, (0, 200, 200))   
-    gameDisplay.fill(green, (770, 50, 100, 20))
-    gameDisplay.blit(DealerTotalGUI, (770, 50))
-    
-    if somme(dealerHand) <= 17 and len(dealerHand) <= 3:
-        distribDealer(dealerHand)
+
+        # Affichage des scores
+        playerGUI()
+        dealerGUI()
 
     pg.display.update()  # Mettre à jour l'écran une fois par boucle
 
     clock.tick(30)
-pg.time.wait(500)
 pg.quit()
 quit()
