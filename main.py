@@ -182,6 +182,7 @@ while run:
     if somme(playerHand) >= 17: 
         if display:
             choiceGUI()
+        else: pass
     for event in pg.event.get():
         if event.type == pg.QUIT:
             run = False
