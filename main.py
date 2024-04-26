@@ -27,7 +27,6 @@ background = pg.transform.scale(background, (window_width, window_height))
 
 gameDisplay = pg.display.set_mode((window_width, window_height))
 gameDisplay.blit(background, (0, 0))
-gameDisplaySurface = (0, 0, window_width, window_height)
 
 # FONTS
 font = pg.font.SysFont(None, 30)
@@ -37,7 +36,7 @@ font3 = pg.font.Font('assets/Bloxat.ttf', 40)
 # CHARGEMENT D'IMAGES
 pioche = pg.image.load('assets/cartes/card-extras/card_back.png')
 pioche = pg.transform.scale(pioche, (200, 200))
-gameDisplay.blit(pioche, (-20, 200))
+
 pioche_rect = pioche.get_rect(topleft=(-20, 200))
 
 # Fonction pour dessiner le bouton à l'écran
@@ -118,33 +117,31 @@ def choiceGUI():
             return True
         elif no_button_rect.collidepoint(mouse):
             return False
-        else: 
-            pass
+        else: pass
     else: pass
 
 def winGUI():
     """Affichage d'écran de victoire"""
     message = font3.render('Victory', True, color.green)
-    win_button = dessiner_bouton(color.bg, 200, 270, 450, 150, message)
-    display = False
+    #bg = dessiner_bouton(color.bg, 200, 270, 450, 150, font.render('', False, color.bg))
+    win_button = dessiner_bouton(color.bg, 200, 280, 450, 150, message)
     return True
 def loseGUI():
     """Affichage d'écran de défaite"""
     message = font3.render('Lose', True, color.red)
-    lose_button = dessiner_bouton(color.bg, 200, 270, 450, 150, message)
-    display = False
+    #bg = dessiner_bouton(color.bg, 200, 270, 450, 150, font.render('', False, color.bg))
+    lose_button = dessiner_bouton(color.bg, 200, 280, 450, 150, message)
     return True
 def drawGUI():
     """Affichage d'écran d'égalité"""
     message = font3.render('Draw', True, color.grey)
-    win_button = dessiner_bouton(color.bg, 200, 270, 450, 150, message)
-    display = False
+    #bg = dessiner_bouton(color.bg, 200, 270, 450, 150, font.render('', False, color.bg))
+    win_button = dessiner_bouton(color.bg, 200, 280, 450, 150, message)
     return True
 def blackjackGUI():
     """Affichage d'écran de blackjack"""
     message = font3.render('Blackjack', True, color.purple)
-    win_button = dessiner_bouton(color.bg, 200, 270, 450, 150, message)
-    display = False
+    win_button = dessiner_bouton(color.bg, 200, 280, 450, 150, message)
     return True
 
 def winCond():
@@ -152,14 +149,11 @@ def winCond():
         # Conditions de lose
     if somme(playerHand) < somme(dealerHand):
         condition = 'lose'
-        pg.time.wait(3000)
     elif somme(playerHand) > 21:
         condition = 'lose'
-        pg.time.wait(3000)
         # Conditions de draw
     elif somme(playerHand) == somme(dealerHand):
         condition = 'draw'
-        pg.time.wait(3000)
     else:
         condition = 'win'
 
@@ -177,6 +171,7 @@ def dealerGUI():
     gameDisplay.blit(DealerTotalGUI, (770, 50))
 
 def redemarrer_jeu():
+    print('Redémarrage du jeu')
     pg.display.quit()
     pg.quit()
     main()
@@ -189,12 +184,17 @@ def rejouerGUI() :
     redemarrer_jeu()
 
 def main():
-    global run, condition
+    global condition, display
     # Boucle de jeu
+    run = True
     while run:
-        if somme(playerHand) >= 17 and display:
+        gameDisplay.blit(background, (0, 0))
+        gameDisplay.blit(pioche, (-20, 200))
+        
+        if somme(playerHand) > 16:
             choiceGUI()
         else: pass
+        
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
@@ -207,10 +207,10 @@ def main():
                 condition = 'win'
             elif somme(playerHand) == 21: 
                 condition = 'bj'
+            elif event.type == pg.KEYDOWN: 
+                if event.key == pg.K_r: redemarrer_jeu()
             elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    if event.key == pg.K_r:
-                        redemarrer_jeu()
                     if pioche_rect.collidepoint(event.pos):
                         distribPlayer(playerHand)
                     elif choiceGUI(): 
@@ -219,39 +219,31 @@ def main():
                         distribPlayer(playerHand)
                     elif not choiceGUI():
                         gameDisplay.fill(color.bg, (200, 270, 600, 200))
+                        display = False
                         winCond()
                         print('0')
-
-
-
-                    
                     print(condition)
-                    if condition == 'win':
-                        winGUI()
-                        pg.time.wait(5000)
-                    elif condition == 'lose':
-                        loseGUI()
-                        pg.time.wait(5000)
-                    else:
-                        drawGUI()
-                        pg.time.wait(5000)
-    if condition == 'lose':
-        loseGUI()
-    elif condition == 'bj':
-        blackjackGUI()
-        pg.time.wait(5000)
+        if condition == 'win': 
+            winGUI()
+            display = False
+        if condition == 'lose': 
+            loseGUI()
+            display = False
+        elif condition == 'bj': 
+            blackjackGUI()
+            display = False
+        elif condition == 'draw': 
+            drawGUI()
+            display = False
+        else: pass
 
-    
+        # Affichage des scores
+        playerGUI()
+        dealerGUI()
 
-    # Affichage des scores
-    playerGUI()
-    dealerGUI()
+        pg.display.update()  # Mettre à jour l'écran une fois par boucle
+        clock.tick(60)
 
-    pg.display.update()  # Mettre à jour l'écran une fois par boucle
-    clock.tick(30)
-
-if __name__ == '__main__':
-    main()
-
+main()
 pg.quit()
 quit()
