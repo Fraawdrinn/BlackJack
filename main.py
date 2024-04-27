@@ -148,45 +148,55 @@ def winCond():
     """Condition d'arrêt"""
         # Conditions de lose
     if somme(playerHand) < somme(dealerHand):
-        condition = 'lose'
+        return 'lose'
     elif somme(playerHand) > 21:
-        condition = 'lose'
+        return 'lose'
         # Conditions de draw
     elif somme(playerHand) == somme(dealerHand):
-        condition = 'draw'
+        return'draw'
     else:
-        condition = 'win'
+        return 'win'
 
 
 def playerGUI():
     # Affichage du score du Joueur
-    playerTotalGUI = font.render(str(somme(playerHand)), True, color.blue)   
-    gameDisplay.fill(color.bg, (770, 500, 100, 20))
-    gameDisplay.blit(playerTotalGUI, (770, 500))
+    text = "Joueur: " + str(somme(playerHand))
+    playerTotalGUI = font.render(text, True, color.blue)   
+    gameDisplay.fill(color.bg, (670, 500, 100, 20))
+    gameDisplay.blit(playerTotalGUI, (670, 500))
 
 def dealerGUI():
     # Affichage du score du croupier
-    DealerTotalGUI = font.render(str(somme(dealerHand)), True, color.light_blue)   
-    gameDisplay.fill(color.bg, (770, 50, 100, 20))
-    gameDisplay.blit(DealerTotalGUI, (770, 50))
+    text = "Croupier: " + str(somme(dealerHand))
+    DealerTotalGUI = font.render(text, True, color.light_blue)   
+    gameDisplay.fill(color.bg, (670, 50, 100, 20))
+    gameDisplay.blit(DealerTotalGUI, (670, 50))
 
 def redemarrer_jeu():
+    global run
     print('Redémarrage du jeu')
-    pg.display.quit()
-    pg.quit()
+    run = False
+    pg.time.wait(1000)
     main()
 
+bouton_rejouer = (0, 0, 150, 50)
 def rejouerGUI() :
     """Affichage d'écran pour rejouer"""
-    message = font3.render('Rejouer ?', True, color.orange)
-    rejouer_bouton = dessiner_bouton(color.bg, 200, 270, 450, 150, message)
-    display = False
-    redemarrer_jeu()
+    message = font.render('Recommencer', True, color.orange)
+    rejouer_bouton = dessiner_bouton(color.bg, bouton_rejouer[0], bouton_rejouer[1], bouton_rejouer[2], bouton_rejouer[3], message)
+
+def choix_rejouer():
+    mouse = pg.mouse.get_pos()
+    rejouer_rect = pg.Rect(bouton_rejouer)
+    if rejouer_rect.collidepoint(mouse):
+        return True
+    else: return False
 
 def main():
     global condition, display
     # Boucle de jeu
     run = True
+    choix = int()
     while run:
         gameDisplay.blit(background, (0, 0))
         gameDisplay.blit(pioche, (-20, 200))
@@ -194,7 +204,7 @@ def main():
         if somme(playerHand) > 16:
             choiceGUI()
         else: pass
-        
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
@@ -207,40 +217,43 @@ def main():
                 condition = 'win'
             elif somme(playerHand) == 21: 
                 condition = 'bj'
-            elif event.type == pg.KEYDOWN: 
-                if event.key == pg.K_r: redemarrer_jeu()
             elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if pioche_rect.collidepoint(event.pos):
                         distribPlayer(playerHand)
+                    elif choix_rejouer():
+                        redemarrer_jeu()
                     elif choiceGUI(): 
-                        print('1')
+                        choix = 1
                         gameDisplay.fill(color.bg, (200, 270, 600, 400))
-                        distribPlayer(playerHand)
                     elif not choiceGUI():
+                        choix = 2
                         gameDisplay.fill(color.bg, (200, 270, 600, 200))
                         display = False
-                        winCond()
-                        print('0')
-                    print(condition)
-        if condition == 'win': 
+             
+        if choix == 1:
+            distribPlayer(playerHand)
+            choix = 0
+        elif choix == 2:
+            winCond()
+        if somme(playerHand) and somme(dealerHand) and somme(playerHand) > somme(dealerHand) and choix == 2:
             winGUI()
-            display = False
         if condition == 'lose': 
             loseGUI()
-            display = False
         elif condition == 'bj': 
             blackjackGUI()
-            display = False
         elif condition == 'draw': 
             drawGUI()
-            display = False
         else: pass
+
+
 
         # Affichage des scores
         playerGUI()
         dealerGUI()
 
+
+        rejouerGUI()
         pg.display.update()  # Mettre à jour l'écran une fois par boucle
         clock.tick(60)
 
