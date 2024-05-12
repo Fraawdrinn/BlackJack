@@ -19,9 +19,10 @@ gameDisplaySurface = (0, 0, window_width, window_height)
 # Initialisation des polices de caractères
 font = pygame.font.SysFont(None, 30)
 font1 = pygame.font.SysFont(None, 14)
-font3 = pygame.font.SysFont(None, 20)
+font3 = pygame.font.SysFont(None, 22)
 font2 = pygame.font.SysFont(None, 36)
 bloxat = pygame.font.Font('assets/Bloxat.ttf', 56)
+bloxat2 = pygame.font.Font('assets/Bloxat.ttf', 26)
 
 # Chargement d'images de la pioche des cartes
 pioche_img = pygame.image.load('assets/cartes/card-extras/card_back.png')
@@ -33,7 +34,7 @@ playerHand = ['player']
 dealerHand = ['dealer']
 
 # Liste de cartes et enseignes
-cards = [
+deck = [
     2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "J", "Q", "K",
     2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "J", "Q", "K",
     2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "J", "Q", "K",
@@ -44,14 +45,14 @@ suits = ["clubs", "diamonds", "hearts", "spades"]
 def dessiner_rect(rect_color, rect_x, rect_y, rect_width, rect_height, text):
     draw = pygame.draw.rect(gameDisplay, rect_color, (rect_x, rect_y, rect_width, rect_height))
     gameDisplay.blit(text, (rect_x + 15, rect_y + 15))
-    return (rect_x, rect_y, rect_width, rect_height, draw)
+    return (rect_x, rect_y, rect_width, rect_height, pygame.Rect(rect_x, rect_y, rect_width, rect_height))
 
 # Classe pour les cartes
 class Card:
-    def __init__(self) -> None:
-        self.suit = random.choice(suits)
-        self.value = random.choice(cards)
-        cards.remove(self.value)
+    def __init__(self, cardList, suitsList):
+        self.suit = random.choice(suitsList)
+        self.value = random.choice(cardList)
+        cardList.remove(self.value)
         self.isHidden = False
         if isinstance(self.value, int) and self.value < 10:
             self.image = pygame.image.load(f'assets/cartes/{self.suit}/card_{self.suit}_0{self.value}.png')
@@ -60,11 +61,13 @@ class Card:
         self.image = pygame.transform.scale(self.image, (150, 150))
         self.back = pygame.image.load('assets/cartes/card-extras/card_back.png')
         self.back = pygame.transform.scale(self.back, (150, 150))
-        self.back_rect = self.back.get_rect()
+        if self.isHidden:
+            self.image = self.back
         self.rect = self.image.get_rect()
 
     # Masquer ou montrer la carte
     def hide(self):
+        """Cacher une carte"""
         if not self.isHidden:
             self.isHidden = True
         else:
@@ -72,44 +75,54 @@ class Card:
 
     # Distribuer une carte à une main
     def distrib(self, hand):
+        """Ajouter une carte à une main"""
         self.hand = hand[0]
         self.parent = hand
-        hand.append(self.value)
+        hand.append(self)
 
-    # Afficher la carte sur l'écran
-    def draw(self):
-        if not self.isHidden:
-            if self.hand == "player":
-                gameDisplay.blit(self.image, (self.rect.x + (len(self.parent) * 50), self.rect.y + window_height - 100))
-            else:
-                gameDisplay.blit(self.image, (self.rect.x + (len(self.parent) * 50), self.rect.y))
+# Afficher la carte sur l'écran
+def draw_hand(hand, aBool=False):
+        """Afficher les mains"""
+        if aBool: # Si aBool renvoie True, On affiche même les cartes cachées
+            for index, card in enumerate(hand[1:]):
+                if hand[0] == "player":
+                        gameDisplay.blit(card.image, (card.rect.x + (index * 50), card.rect.y + window_height - 100))
+                elif hand[0] == "dealer":
+                        gameDisplay.blit(card.image, (card.rect.x + (index * 50), card.rect.y))
         else:
-            if self.hand == "player":
-                gameDisplay.blit(self.back, (self.back_rect.x + (len(self.parent) * 50), self.back_rect.y + window_height - 100))
-            else:
-                gameDisplay.blit(self.back, (self.back_rect.x + (len(self.parent) * 50), self.back_rect.y))
+            for index, card in enumerate(hand[1:]):
+                if hand[0] == "player":
+                    if card.isHidden:
+                        gameDisplay.blit(card.back, (card.rect.x + (index * 50), card.rect.y + window_height - 100))
+                    else:
+                        gameDisplay.blit(card.image, (card.rect.x + (index * 50), card.rect.y + window_height - 100))
+                elif hand[0] == "dealer":
+                    if card.isHidden:
+                        gameDisplay.blit(card.back, (card.rect.x + (index * 50), card.rect.y))
+                    else:
+                        gameDisplay.blit(card.image, (card.rect.x + (index * 50), card.rect.y))
+
 
 # Fonction pour piocher une carte dans une main
 def pioche(hand, statement=True):
-    new_card = Card()
+    new_card = Card(deck, suits)
     new_card.distrib(hand)
     if not statement:
         new_card.hide()
-    new_card.draw()
 
 # Calculer la somme des cartes dans une main
 def sum(hand):
     total = 0
     for el in hand:
-        if isinstance(el, int):
-            total += el
-        elif el == 'A':
+        if el == 'player' or el == 'dealer':
+            pass
+        elif isinstance(el.value, int):
+            total += el.value
+        elif el.value == 'A':
             if total + 11 > 21:
                 total += 1
             else:
                 total += 11
-        elif el == 'player' or el == 'dealer':
-            pass
         else:
             total += 10
     return total
@@ -131,31 +144,23 @@ def dealerGUI():
 
 def winGUI():
     # Affichage en cas de victoire
-    gameDisplay.blit(background, (0, 0))
     text = bloxat.render('VICTOIRE', True, color.green)
-    dessiner_rect(color.bg, (window_width/2 - 50), (window_height/2), 200, 200, text)
-    print("victoire")
+    dessiner_rect(color.bg, (window_width/2 - 50), (window_height/2), 200, 100, text)
 
 def loseGUI():
     # Affichage en cas de défaite
-    gameDisplay.blit(background, (0, 0))
     text = bloxat.render('DEFAITE', True, color.red)
-    dessiner_rect(color.bg, (window_width/2 - 70), (window_height/2), 200, 200, text)
-    print("défaite")
+    dessiner_rect(color.bg, (window_width/2 - 70), (window_height/2), 200, 100, text)
 
 def drawGUI():
     # Affichage en cas d'égalité
-    gameDisplay.blit(background, (0, 0))
     text = bloxat.render('ÉGALITÉ', True, color.grey)
-    dessiner_rect(color.bg, (window_width/2 - 50), (window_height/2), 200, 200, text)
-    print("égalité")
+    dessiner_rect(color.bg, (window_width/2 - 50), (window_height/2), 200, 100, text)
 
 def blackjackGUI():
     # Affichage en cas de Blackjack
-    gameDisplay.blit(background, (0, 0))
     text = bloxat.render('BLACKJACK', True, color.purple)
-    dessiner_rect(color.bg, (window_width/2 - 100), (window_height/2), 200, 200, text)
-    print("Blackjack")
+    dessiner_rect(color.bg, (window_width/2 - 100), (window_height/2), 200, 100, text)
 
 def stopGUI():
     # Affiche le bouton pour arrêter de piocher
@@ -164,93 +169,153 @@ def stopGUI():
     return pygame.Rect(window_width-100, window_height-200, 100, 60)
 
 # Fonction principale du jeu
-def main():
+def game():
     global pioche_rect
-
-    # Affichage de l'arrière-plan et de la pioche des cartes
-    gameDisplay.blit(background, (0, 0))
-    gameDisplay.blit(pioche_scaled, (-20, 200))
 
     # Initialisation des variables et des états du jeu
     game_over = False
     game_state = ""
     piochable = True
+    start_time = pygame.time.get_ticks()
+    # Définition de l'événement DEALER_DRAW en dehors de la boucle principale
+    DEALER_DRAW = pygame.USEREVENT + 1
+    pygame.time.set_timer(DEALER_DRAW, 500)  # Déclenche l'événement toutes les 500 millisecondes
+
     message = font3.render('Vous arrêtez de piocher, au croupier maintenant', True, color.white)
-    pioche(dealerHand, True)
+    pioche(dealerHand, True) # Afficher la première carte
     pioche(dealerHand, False)
 
     # Boucle principale du jeu
     while not game_over:
+
+        # Affichage de l'arrière-plan et de la pioche des cartes
+        gameDisplay.blit(background, (0, 0))
+        gameDisplay.blit(pioche_scaled, (-20, 200))
+        stopGUI()
+        draw_hand(playerHand)
+        draw_hand(dealerHand)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT or len(playerHand) > 7 or len(dealerHand) > 7:
-                game_over = True
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    return True
-                elif event.key == pygame.K_b:
-                    pass
-                elif event.key == pygame.K_SPACE:
-                    pioche(dealerHand, False)
+                pygame.quit()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if pioche_rect.collidepoint(event.pos) and piochable:
                     pioche(playerHand)
-                elif stopGUI().collidepoint(event.pos):
+                elif stopGUI().collidepoint(event.pos) and piochable:
                     gameDisplay.blit(message, (window_width/2 - 100, window_height-150))
                     piochable = False
+            elif event.type == DEALER_DRAW and not piochable:
+                if not sum(dealerHand) >= 17:
+                    pioche(dealerHand, True)
+                    game_state = 'finito'
+                elif piochable:
+                    pygame.time.set_timer(DEALER_DRAW, 0)  # Arrête l'événement de temporisation lorsque le jeu reprend
 
         # Conditions de fin du jeu
         if sum(playerHand) == 21:
             blackjackGUI()
+            game_state = 'bj'
             game_over = True
-        if sum(dealerHand) == 21:
+        elif sum(dealerHand) == 21:
             loseGUI()
+            game_state = 'lose'
             game_over = True
         if sum(playerHand) > 21:
             loseGUI()
+            game_state = 'lose'
             game_over = True
-        if sum(dealerHand) > 21:
+        elif sum(dealerHand) > 21:
             winGUI()
+            game_state = 'win'
             game_over = True
 
         # Jeu
-        if not piochable:
-            pygame.time.wait(500)
-            while not sum(dealerHand) >= 17:
-                pioche(dealerHand, False)
-                game_state = 'finito'
+        
 
         if game_state == 'finito':
             if sum(playerHand) == 21:
                 blackjackGUI()
+                game_state = 'bj'
                 game_over = True
             elif sum(dealerHand) == 21:
                 loseGUI()
+                game_state = 'lose'
                 game_over = True
             elif sum(playerHand) > 21:
                 loseGUI()
-                game_over = True
-            elif sum(playerHand) < sum(dealerHand):
-                loseGUI()
+                game_state = 'lose'
                 game_over = True
             elif sum(dealerHand) > 21:
                 winGUI()
+                game_state = 'win'
+                game_over = True
+            elif sum(playerHand) < sum(dealerHand):
+                loseGUI()
+                game_state = 'lose'
                 game_over = True
             elif sum(playerHand) > sum(dealerHand):
                 winGUI()
+                game_state = 'win'
                 game_over = True
             else:
                 drawGUI()
+                game_state = 'draw'
                 game_over = True
 
         # Affichage graphique durant le jeu
         dealerGUI()
         playerGUI()
-        stopGUI()
 
         pygame.display.update()  # Mettre à jour l'écran une fois par boucle
         FramePerSec.tick(FPS)
-      
-    return
+    return game_state
+
+def replay():
+    global deck, suits, playerHand, dealerHand
+    replay_button = dessiner_rect(color.blue, window_width/3, window_height-200, window_width/8+100, window_height/8, bloxat2.render('Rejouer', False, color.white))
+    # Liste de cartes et enseignes
+    deck = [
+        2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "J", "Q", "K",
+        2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "J", "Q", "K",
+        2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "J", "Q", "K",
+        2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "J", "Q", "K"]
+    suits = ["clubs", "diamonds", "hearts", "spades"]
+    # Reinitialisation des mains du joueur et du croupier
+    playerHand = ['player']
+    dealerHand = ['dealer']
+    return replay_button
+
+def main():
+    run = True
+    played = False
+    result = None  # Variable pour stocker le résultat du jeu (gagné ou perdu)
+    while run:
+        # Background
+        gameDisplay.blit(background, (0, 0))
+        if not played:
+            play_button = dessiner_rect(color.red, window_width/4, window_height - 200, window_width/8, window_height/8, bloxat2.render('Jouer', False, color.white))
+        else:
+            replay()
+            # Afficher le résultat du jeu s'il existe
+            if result:
+                if result == 'bj': blackjackGUI()
+                elif result == 'win': winGUI()
+                elif result == 'lose': loseGUI()
+                elif result == 'draw': drawGUI()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if not played and play_button[-1].collidepoint(event.pos):
+                    result = game()  # Stocker le résultat du jeu
+                    played = True
+                elif played and replay()[-1].collidepoint(event.pos):
+                    played = False
+                    result = None  # Réinitialiser le résultat du jeu
+
+        pygame.display.update()
+        FramePerSec.tick(FPS)
 
 if __name__ == "__main__":
     main()
