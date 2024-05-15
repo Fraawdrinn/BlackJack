@@ -134,6 +134,7 @@ def playerGUI():
     playerTotalGUI = font.render(text, True, color.blue)   
     gameDisplay.fill(color.bg, ((window_width - 100), (window_height - 110), 100, 20))
     gameDisplay.blit(playerTotalGUI, (window_width - 110, window_height - 110))
+    return (playerTotalGUI, (((window_width - 100), (window_height - 110), 100, 20)), (window_width - 110, window_height - 110))
 
 def dealerGUI():
     # Affichage du score du croupier
@@ -141,6 +142,7 @@ def dealerGUI():
     dealerTotalGUI = font.render(text, True, color.light_blue)   
     gameDisplay.fill(color.bg, ((window_width - 120), 110, 120, 20))
     gameDisplay.blit(dealerTotalGUI, (window_width - 120, 110))
+    return (dealerTotalGUI, (window_width - 120, 110))
 
 def winGUI():
     # Affichage en cas de victoire
@@ -164,9 +166,14 @@ def blackjackGUI():
 
 def stopGUI():
     # Affiche le bouton pour arrêter de piocher
-    text = font1.render('Arrêter de piocher', False, color.white)
+    text = font.render('STAND', False, color.white)
     dessiner_rect(color.red, window_width-100, window_height-200, 100, 50, text)
     return pygame.Rect(window_width-100, window_height-200, 100, 60)
+
+def dealGUI():
+    # Indique comment piocher
+    text = font.render('DEAL', False, color.black)
+    dessiner_rect(color.white, 25, 200, 100, 50, text)
 
 # Fonction principale du jeu
 def game():
@@ -177,6 +184,7 @@ def game():
     game_state = ""
     piochable = True
     start_time = pygame.time.get_ticks()
+    
     # Définition de l'événement DEALER_DRAW en dehors de la boucle principale
     DEALER_DRAW = pygame.USEREVENT + 1
     pygame.time.set_timer(DEALER_DRAW, 500)  # Déclenche l'événement toutes les 500 millisecondes
@@ -192,6 +200,7 @@ def game():
         gameDisplay.blit(background, (0, 0))
         gameDisplay.blit(pioche_scaled, (-20, 200))
         stopGUI()
+        dealGUI()
         draw_hand(playerHand)
         draw_hand(dealerHand)
 
@@ -204,12 +213,7 @@ def game():
                 elif stopGUI().collidepoint(event.pos) and piochable:
                     gameDisplay.blit(message, (window_width/2 - 100, window_height-150))
                     piochable = False
-            elif event.type == DEALER_DRAW and not piochable:
-                if not sum(dealerHand) >= 17:
-                    pioche(dealerHand, True)
-                    game_state = 'finito'
-                elif piochable:
-                    pygame.time.set_timer(DEALER_DRAW, 0)  # Arrête l'événement de temporisation lorsque le jeu reprend
+                
 
         # Conditions de fin du jeu
         if sum(playerHand) == 21:
@@ -230,6 +234,10 @@ def game():
             game_over = True
 
         # Jeu
+        if not piochable:
+            if not sum(dealerHand) >= 17:
+                pioche(dealerHand, True)
+                game_state = 'finito'
         
 
         if game_state == 'finito':
@@ -268,6 +276,11 @@ def game():
 
         pygame.display.update()  # Mettre à jour l'écran une fois par boucle
         FramePerSec.tick(FPS)
+
+    for card in dealerHand[1:]:
+        if card.isHidden:
+            card.hide()
+            
     return game_state
 
 def replay():
@@ -280,21 +293,27 @@ def replay():
         2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "J", "Q", "K",
         2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "J", "Q", "K"]
     suits = ["clubs", "diamonds", "hearts", "spades"]
-    # Reinitialisation des mains du joueur et du croupier
-    playerHand = ['player']
-    dealerHand = ['dealer']
     return replay_button
 
 def main():
     run = True
     played = False
     result = None  # Variable pour stocker le résultat du jeu (gagné ou perdu)
+    player_hand = playerGUI()
+    dealer_hand = dealerGUI()
     while run:
         # Background
         gameDisplay.blit(background, (0, 0))
         if not played:
             play_button = dessiner_rect(color.red, window_width/4, window_height - 200, window_width/8, window_height/8, bloxat2.render('Jouer', False, color.white))
         else:
+            # Afficher le total actuel du joueur
+            gameDisplay.blit(playerGUI()[0], playerGUI()[-1])
+            # Afficher le total actuel du joueur
+            gameDisplay.blit(dealerGUI()[0], dealerGUI()[-1])
+            
+            draw_hand(playerHand)
+            draw_hand(dealerHand)
             replay()
             # Afficher le résultat du jeu s'il existe
             if result:
